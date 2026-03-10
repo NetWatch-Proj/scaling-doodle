@@ -24,9 +24,9 @@ defmodule ScalingDoodleWeb do
       use Phoenix.Router, helpers: false
 
       # Import common connection and controller functions to use in pipelines
-      import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
+      import Plug.Conn
     end
   end
 
@@ -39,7 +39,6 @@ defmodule ScalingDoodleWeb do
   def controller do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
-
       use Gettext, backend: ScalingDoodleWeb.Gettext
 
       import Plug.Conn

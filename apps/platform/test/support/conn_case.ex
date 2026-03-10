@@ -19,15 +19,15 @@ defmodule ScalingDoodleWeb.ConnCase do
 
   using do
     quote do
-      # The default endpoint for testing
-      @endpoint ScalingDoodleWeb.Endpoint
-
       use ScalingDoodleWeb, :verified_routes
 
       # Import conveniences for testing with connections
-      import Plug.Conn
       import Phoenix.ConnTest
+      import Plug.Conn
       import ScalingDoodleWeb.ConnCase
+
+      # The default endpoint for testing
+      @endpoint ScalingDoodleWeb.Endpoint
     end
   end
 
