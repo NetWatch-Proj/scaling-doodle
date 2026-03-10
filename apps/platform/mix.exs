@@ -73,18 +73,20 @@ defmodule ScalingDoodle.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind scaling_doodle", "esbuild scaling_doodle"],
       "assets.deploy": [
         "tailwind scaling_doodle --minify",
         "esbuild scaling_doodle --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      lint: ["format"],
+      "lint.ci": ["format --check-formatted"],
+      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
 end
