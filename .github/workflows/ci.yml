@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-changes:
+    name: Check for changes
+    runs-on: ubuntu-latest
+    outputs:
+      platform: ${{ steps.filter.outputs.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            platform:
+              - 'apps/platform/**'
+              - '.github/workflows/platform-ci.yml'
+
+  platform-ci:
+    name: Platform CI
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.platform == 'true' }}
+    uses: ./.github/workflows/platform-ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  ci-complete:
+    name: CI Complete
+    needs:
+      - check-changes
+      - platform-ci
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.platform-ci.result }}" = "failure" ]; then
+            echo "Platform CI failed"
+            exit 1
+          fi
+          if [ "${{ needs.platform-ci.result }}" = "cancelled" ]; then
+            echo "Platform CI was cancelled"
+            exit 1
+          fi
+          echo "All CI checks passed or were not needed"
