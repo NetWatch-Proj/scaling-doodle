@@ -62,6 +62,7 @@ defmodule ScalingDoodle.MixProject do
       {:phoenix_live_view, "1.1.26"},
       {:postgrex, "0.22.0"},
       {:req, "0.5.17"},
+      {:styler, "1.10.0", only: [:dev, :test], runtime: false},
       {:swoosh, "1.23.0"},
       {:tailwind, "0.4.1", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "1.1.0"},
