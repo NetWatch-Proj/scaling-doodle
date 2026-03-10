@@ -7,9 +7,6 @@ on:
         description: 'Git ref to checkout'
         required: true
         type: string
-    secrets:
-      CODECOV_TOKEN:
-        required: true
 
 env:
   MIX_ENV: test
