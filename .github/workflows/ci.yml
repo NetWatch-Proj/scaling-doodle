@@ -51,25 +51,26 @@ jobs:
             const delayMs = 10000;
 
             for (let i = 0; i < maxAttempts; i++) {
-              const statuses = await github.rest.repos.listCommitStatusesForRef({
+              const checks = await github.rest.checks.listForRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 ref: context.sha
               });
 
-              const codecovStatus = statuses.data.find(s =>
-                s.context.startsWith('codecov/')
+              const codecovCheck = checks.data.check_runs.find(check =>
+                check.name.toLowerCase().includes('codecov')
               );
 
-              if (codecovStatus) {
-                if (codecovStatus.state === 'success') {
-                  console.log('Codecov reported success');
+              if (codecovCheck) {
+                if (codecovCheck.status === 'completed') {
+                  if (codecovCheck.conclusion === 'success') {
+                    console.log('Codecov reported success');
+                    return;
+                  }
+                  core.setFailed(`Codecov reported: ${codecovCheck.conclusion}`);
                   return;
                 }
-                if (codecovStatus.state === 'failure' || codecovStatus.state === 'error') {
-                  core.setFailed(`Codecov reported: ${codecovStatus.state}`);
-                  return;
-                }
+                console.log(`Codecov status: ${codecovCheck.status}`);
               }
 
               console.log(`Waiting for Codecov... (${i + 1}/${maxAttempts})`);
