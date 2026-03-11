@@ -67,6 +67,17 @@ jobs:
       - name: Compile project
         run: mix compile --warnings-as-errors
 
+      - name: Restore dialyzer PLT cache
+        uses: actions/cache@v4
+        with:
+          path: apps/platform/priv/plts
+          key: ${{ runner.os }}-dialyzer-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('apps/platform/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-dialyzer-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-
+
+      - name: Run dialyzer
+        run: mix dialyzer
+
       - name: Run linters
         run: mix lint.ci
 

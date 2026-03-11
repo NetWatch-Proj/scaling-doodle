@@ -12,7 +12,14 @@ defmodule ScalingDoodle.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      test_coverage: [tool: ExCoveralls]
+      test_coverage: [tool: ExCoveralls],
+      dialyzer: [
+        plt_add_apps: [
+          :ex_unit
+        ],
+        plt_file: {:no_warn, "priv/plts/project.plt"},
+        list_unused_filter: true
+      ]
     ]
   end
 
@@ -49,6 +56,7 @@ defmodule ScalingDoodle.MixProject do
   defp deps do
     [
       {:bandit, "1.10.3"},
+      {:dialyxir, "1.4.7", only: [:dev, :test], runtime: false},
       {:dns_cluster, "0.2.0"},
       {:ecto_sql, "3.13.5"},
       {:esbuild, "0.10.0", runtime: Mix.env() == :dev},
