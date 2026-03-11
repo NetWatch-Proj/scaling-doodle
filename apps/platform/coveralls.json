@@ -1,0 +1,15 @@
+{
+  "skip_files": [
+    "lib/scaling_doodle.ex",
+    "lib/scaling_doodle/application.ex",
+    "lib/scaling_doodle/repo.ex",
+    "lib/scaling_doodle_web.ex",
+    "lib/scaling_doodle_web/components/core_components.ex",
+    "lib/scaling_doodle_web/components/layouts.ex",
+    "lib/scaling_doodle_web/endpoint.ex",
+    "lib/scaling_doodle_web/gettext.ex",
+    "lib/scaling_doodle_web/router.ex",
+    "lib/scaling_doodle_web/telemetry.ex",
+    "test"
+  ]
+}
