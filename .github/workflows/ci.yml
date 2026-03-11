@@ -45,30 +45,33 @@ jobs:
     steps:
       - name: Wait for Codecov status
         uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         with:
           script: |
             const maxAttempts = 60;
             const delayMs = 10000;
+            const headSha = process.env.HEAD_SHA;
+
+            console.log(`Checking for Codecov status on SHA: ${headSha}`);
 
             for (let i = 0; i < maxAttempts; i++) {
-              // Check both Check Runs and Commit Statuses
               const [checks, statuses] = await Promise.all([
                 github.rest.checks.listForRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  ref: context.sha
+                  ref: headSha
                 }),
                 github.rest.repos.listCommitStatusesForRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  ref: context.sha
+                  ref: headSha
                 })
               ]);
 
               console.log('Check runs:', checks.data.check_runs.map(c => `${c.name} (${c.status}/${c.conclusion})`));
               console.log('Statuses:', statuses.data.map(s => `${s.context} (${s.state})`));
 
-              // Check Check Runs
               const codecovCheck = checks.data.check_runs.find(check =>
                 check.name.toLowerCase().includes('codecov') || check.app?.slug === 'codecov'
               );
@@ -85,7 +88,6 @@ jobs:
                 }
               }
 
-              // Check Commit Statuses
               const codecovStatus = statuses.data.find(s =>
                 s.context.toLowerCase().includes('codecov') || s.context.startsWith('codecov/')
               );
