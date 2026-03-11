@@ -7,6 +7,9 @@ on:
         description: 'Git ref to checkout'
         required: true
         type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 
 env:
   MIX_ENV: test
@@ -68,4 +71,10 @@ jobs:
         run: mix lint.ci
 
       - name: Run tests
-        run: mix test
+        run: mix coveralls.json
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          flags: platform
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -11,7 +11,8 @@ defmodule ScalingDoodle.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -27,7 +28,14 @@ defmodule ScalingDoodle.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.cobertura": :test,
+        precommit: :test
+      ]
     ]
   end
 
@@ -44,6 +52,7 @@ defmodule ScalingDoodle.MixProject do
       {:dns_cluster, "0.2.0"},
       {:ecto_sql, "3.13.5"},
       {:esbuild, "0.10.0", runtime: Mix.env() == :dev},
+      {:excoveralls, "0.18.5", only: :test},
       {:gettext, "1.0.2"},
       {:heroicons,
        github: "tailwindlabs/heroicons", tag: "v2.2.0", sparse: "optimized", app: false, compile: false, depth: 1},

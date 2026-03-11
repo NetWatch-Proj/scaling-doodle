@@ -32,12 +32,58 @@ jobs:
     uses: ./.github/workflows/platform-ci.yml
     with:
       ref: ${{ github.sha }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  wait-for-codecov:
+    name: Wait for Codecov
+    needs:
+      - check-changes
+      - platform-ci
+    if: ${{ needs.check-changes.outputs.platform == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Codecov status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const maxAttempts = 60;
+            const delayMs = 10000;
+
+            for (let i = 0; i < maxAttempts; i++) {
+              const statuses = await github.rest.repos.listCommitStatusesForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: context.sha
+              });
+
+              const codecovStatus = statuses.data.find(s =>
+                s.context.startsWith('codecov/')
+              );
+
+              if (codecovStatus) {
+                if (codecovStatus.state === 'success') {
+                  console.log('Codecov reported success');
+                  return;
+                }
+                if (codecovStatus.state === 'failure' || codecovStatus.state === 'error') {
+                  core.setFailed(`Codecov reported: ${codecovStatus.state}`);
+                  return;
+                }
+              }
+
+              console.log(`Waiting for Codecov... (${i + 1}/${maxAttempts})`);
+              await new Promise(r => setTimeout(r, delayMs));
+            }
+
+            core.setFailed('Timeout waiting for Codecov');
 
   ci-complete:
     name: CI Complete
     needs:
       - check-changes
       - platform-ci
+      - wait-for-codecov
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +95,14 @@ jobs:
           fi
           if [ "${{ needs.platform-ci.result }}" = "cancelled" ]; then
             echo "Platform CI was cancelled"
+            exit 1
+          fi
+          if [ "${{ needs.wait-for-codecov.result }}" = "failure" ]; then
+            echo "Codecov check failed"
+            exit 1
+          fi
+          if [ "${{ needs.wait-for-codecov.result }}" = "cancelled" ]; then
+            echo "Codecov check was cancelled"
             exit 1
           fi
           echo "All CI checks passed or were not needed"

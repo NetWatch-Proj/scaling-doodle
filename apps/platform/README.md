@@ -1,5 +1,7 @@
 # ScalingDoodle
 
+[![codecov](https://codecov.io/gh/NetWatch-Proj/scaling-doodle/graph/badge.svg?token=SH9K8B4ZVF&flag=platform)](https://codecov.io/gh/NetWatch-Proj/scaling-doodle)
+
 To start your Phoenix server:
 
 * Run `mix setup` to install and setup dependencies
