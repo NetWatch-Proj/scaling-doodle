@@ -45,29 +45,61 @@ jobs:
     steps:
       - name: Wait for Codecov status
         uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         with:
           script: |
             const maxAttempts = 60;
             const delayMs = 10000;
+            const headSha = process.env.HEAD_SHA;
+
+            console.log(`Checking for Codecov status on SHA: ${headSha}`);
 
             for (let i = 0; i < maxAttempts; i++) {
-              const statuses = await github.rest.repos.listCommitStatusesForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: context.sha
-              });
+              const [checks, statuses] = await Promise.all([
+                github.rest.checks.listForRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: headSha
+                }),
+                github.rest.repos.listCommitStatusesForRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: headSha
+                })
+              ]);
+
+              console.log('Check runs:', checks.data.check_runs.map(c => `${c.name} (${c.status}/${c.conclusion})`));
+              console.log('Statuses:', statuses.data.map(s => `${s.context} (${s.state})`));
+
+              const codecovCheck = checks.data.check_runs.find(check =>
+                check.name.toLowerCase().includes('codecov') || check.app?.slug === 'codecov'
+              );
+
+              if (codecovCheck) {
+                console.log(`Found Codecov check run: ${codecovCheck.name}, status: ${codecovCheck.status}, conclusion: ${codecovCheck.conclusion}`);
+                if (codecovCheck.status === 'completed') {
+                  if (codecovCheck.conclusion === 'success') {
+                    console.log('Codecov check run reported success');
+                    return;
+                  }
+                  core.setFailed(`Codecov check run reported: ${codecovCheck.conclusion}`);
+                  return;
+                }
+              }
 
               const codecovStatus = statuses.data.find(s =>
-                s.context.startsWith('codecov/')
+                s.context.toLowerCase().includes('codecov') || s.context.startsWith('codecov/')
               );
 
               if (codecovStatus) {
+                console.log(`Found Codecov status: ${codecovStatus.context}, state: ${codecovStatus.state}`);
                 if (codecovStatus.state === 'success') {
-                  console.log('Codecov reported success');
+                  console.log('Codecov status reported success');
                   return;
                 }
                 if (codecovStatus.state === 'failure' || codecovStatus.state === 'error') {
-                  core.setFailed(`Codecov reported: ${codecovStatus.state}`);
+                  core.setFailed(`Codecov status reported: ${codecovStatus.state}`);
                   return;
                 }
               }
