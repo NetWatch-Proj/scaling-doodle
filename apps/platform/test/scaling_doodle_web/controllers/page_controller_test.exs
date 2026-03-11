@@ -1,5 +1,5 @@
 defmodule ScalingDoodleWeb.PageControllerTest do
-  use ScalingDoodleWeb.ConnCase
+  use ScalingDoodleWeb.ConnCase, async: true
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
