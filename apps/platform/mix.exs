@@ -56,6 +56,7 @@ defmodule ScalingDoodle.MixProject do
   defp deps do
     [
       {:bandit, "1.10.3"},
+      {:credo, "1.7.14", only: [:dev, :test], runtime: false},
       {:dialyxir, "1.4.7", only: [:dev, :test], runtime: false},
       {:dns_cluster, "0.2.0"},
       {:ecto_sql, "3.13.5"},
@@ -99,9 +100,9 @@ defmodule ScalingDoodle.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      lint: ["format"],
-      "lint.ci": ["format --check-formatted"],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
+      lint: ["format", "credo"],
+      "lint.ci": ["format --check-formatted", "credo"],
+      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "lint", "test"],
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
