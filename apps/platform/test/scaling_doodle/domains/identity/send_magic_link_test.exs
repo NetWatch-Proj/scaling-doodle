@@ -39,7 +39,7 @@ defmodule ScalingDoodle.Identity.SendMagicLinkTest do
     end
 
     test "sends magic link email when user is converted to string" do
-      SendMagicLink.send(12345, "test-token", [])
+      SendMagicLink.send(12_345, "test-token", [])
 
       assert_email_sent(
         subject: "Log in to ScalingDoodle",
