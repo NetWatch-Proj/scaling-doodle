@@ -1,8 +1,8 @@
-defmodule ScalingDoodle.Accounts.User do
+defmodule ScalingDoodle.Identity.User do
   @moduledoc false
   use Ash.Resource,
     otp_app: :scaling_doodle,
-    domain: ScalingDoodle.Accounts,
+    domain: ScalingDoodle.Identity,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication]
@@ -20,13 +20,13 @@ defmodule ScalingDoodle.Accounts.User do
         registration_enabled? true
         # require_interaction? true  # Temporarily disabled for testing
 
-        sender ScalingDoodle.Accounts.SendMagicLink
+        sender ScalingDoodle.Identity.SendMagicLink
       end
     end
 
     tokens do
       enabled? true
-      token_resource ScalingDoodle.Accounts.Token
+      token_resource ScalingDoodle.Identity.Token
       signing_secret ScalingDoodle.Secrets
       store_all_tokens? true
       require_token_presence_for_authentication? true

@@ -6,7 +6,7 @@ defmodule ScalingDoodleWeb.Router do
   import Oban.Web.Router
 
   alias Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-  alias ScalingDoodle.Accounts.User
+  alias ScalingDoodle.Identity.User
 
   pipeline :browser do
     plug :accepts, ["html"]

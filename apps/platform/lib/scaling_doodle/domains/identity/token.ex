@@ -1,8 +1,8 @@
-defmodule ScalingDoodle.Accounts.Token do
+defmodule ScalingDoodle.Identity.Token do
   @moduledoc false
   use Ash.Resource,
     otp_app: :scaling_doodle,
-    domain: ScalingDoodle.Accounts,
+    domain: ScalingDoodle.Identity,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication.TokenResource]

@@ -70,7 +70,7 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
 config :scaling_doodle,
   ecto_repos: [ScalingDoodle.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [ScalingDoodle.Accounts]
+  ash_domains: [ScalingDoodle.Identity]
 
 config :spark,
   formatter: [

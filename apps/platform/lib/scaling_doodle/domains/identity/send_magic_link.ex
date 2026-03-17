@@ -1,4 +1,4 @@
-defmodule ScalingDoodle.Accounts.SendMagicLink do
+defmodule ScalingDoodle.Identity.SendMagicLink do
   @moduledoc """
   Sends a magic link email to the user.
   In development, the link is also logged to the console.
