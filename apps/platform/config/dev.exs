@@ -1,5 +1,7 @@
 import Config
 
+config :ash, policies: [show_policy_breakdowns?: true]
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
@@ -86,7 +88,7 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :scaling_doodle, dev_routes: true
+config :scaling_doodle, dev_routes: true, token_signing_secret: "LL5BSpTNZ+CmEryG91YSurM+qFeflbqh"
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

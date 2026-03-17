@@ -19,7 +19,8 @@ defmodule ScalingDoodle.MixProject do
         ],
         plt_file: {:no_warn, "priv/plts/project.plt"},
         list_unused_filter: true
-      ]
+      ],
+      consolidate_protocols: Mix.env() != :dev
     ]
   end
 
@@ -55,6 +56,22 @@ defmodule ScalingDoodle.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:usage_rules, "~> 1.0", only: [:dev]},
+      {:ash_cloak, "~> 0.2"},
+      {:cloak, "~> 1.0"},
+      {:live_debugger, "~> 0.6", only: [:dev]},
+      {:ash_state_machine, "~> 0.2"},
+      {:oban, "~> 2.0"},
+      {:oban_web, "~> 2.0"},
+      {:ash_oban, "~> 0.7"},
+      {:ash_admin, "~> 0.14"},
+      {:ash_authentication_phoenix, "~> 2.0"},
+      {:picosat_elixir, "~> 0.2"},
+      {:ash_authentication, "~> 4.0"},
+      {:ash_phoenix, "~> 2.0"},
+      {:ash_postgres, "~> 2.0"},
+      {:sourceror, "~> 1.8", only: [:dev, :test]},
+      {:ash, "~> 3.0"},
       {:bandit, "1.10.3"},
       {:credo, "1.7.14", only: [:dev, :test], runtime: false},
       {:dialyxir, "1.4.7", only: [:dev, :test], runtime: false},
@@ -103,8 +120,8 @@ defmodule ScalingDoodle.MixProject do
       lint: ["format", "credo"],
       "lint.ci": ["format --check-formatted", "credo"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "lint", "test"],
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build", "run priv/repo/seeds.exs"],
+      test: ["ash.setup --quiet", "test"]
     ]
   end
 end

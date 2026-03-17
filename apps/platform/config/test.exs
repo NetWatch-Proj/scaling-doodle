@@ -1,5 +1,9 @@
 import Config
 
+config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
+
+config :bcrypt_elixir, log_rounds: 1
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 
@@ -13,6 +17,8 @@ config :phoenix,
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+config :scaling_doodle, Oban, testing: :manual
 
 # In test we don't send emails
 config :scaling_doodle, ScalingDoodle.Mailer, adapter: Swoosh.Adapters.Test
@@ -36,6 +42,8 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "SbyE+LMu10k2lfkW4jLBRqGsaJqouaMxoab6LYtBfY66CiP4ivb/Ltb+dnaxTls4",
   server: false
+
+config :scaling_doodle, token_signing_secret: "q6VGRpB7YdSDFi6TUNYLPfpS6lWiF+jU"
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
