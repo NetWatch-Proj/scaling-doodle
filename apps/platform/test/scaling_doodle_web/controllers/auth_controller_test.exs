@@ -1,6 +1,8 @@
 defmodule ScalingDoodleWeb.AuthControllerTest do
   use ScalingDoodleWeb.ConnCase, async: true
 
+  import ScalingDoodle.Generator
+
   describe "authentication happy path" do
     test "unauthenticated user sees Sign In button on home page", %{conn: conn} do
       response_conn = get(conn, ~p"/")
@@ -27,9 +29,9 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       assert redirected_to(sign_in_conn) == ~p"/"
 
       # Follow redirect and verify user is signed in
-      home_conn = get(recycle(sign_in_conn), ~p"/")
-      assert html_response(home_conn, 200) =~ "Sign Out"
-      assert html_response(home_conn, 200) =~ email
+      authenticated_conn = get(recycle(sign_in_conn), ~p"/")
+      assert html_response(authenticated_conn, 200) =~ "Sign Out"
+      assert html_response(authenticated_conn, 200) =~ email
     end
 
     test "user can sign out", %{conn: conn} do
@@ -58,11 +60,11 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       assert html_response(unauthenticated_conn, 200) =~ "Sign In"
     end
 
-    test "invalid magic link token shows error", %{conn: conn} do
+    test "invalid magic link token redirects to sign-in", %{conn: conn} do
       # Try to sign in with an invalid token
       response_conn = get(conn, ~p"/auth/user/magic_link?token=invalid_token")
 
-      # Should redirect to sign-in page with error
+      # Should redirect to sign-in page
       assert redirected_to(response_conn) == ~p"/sign-in"
     end
 
@@ -90,6 +92,17 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       # Verify user2 is signed in
       home2_conn = get(recycle(sign_in2_conn), ~p"/")
       assert html_response(home2_conn, 200) =~ to_string(user2.email)
+    end
+
+    test "sign in shows success message", %{conn: conn} do
+      user = generate(user())
+      token = magic_link_token(user: user)
+
+      sign_in_conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
+
+      # Follow redirect to see the flash message
+      authenticated_conn = get(recycle(sign_in_conn), ~p"/")
+      assert html_response(authenticated_conn, 200) =~ "You are now signed in"
     end
   end
 end
