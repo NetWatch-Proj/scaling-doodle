@@ -26,6 +26,9 @@ defmodule ScalingDoodleWeb.ConnCase do
       import Plug.Conn
       import ScalingDoodleWeb.ConnCase
 
+      # Import test data generators
+      import ScalingDoodle.Generator
+
       # The default endpoint for testing
       @endpoint ScalingDoodleWeb.Endpoint
     end
