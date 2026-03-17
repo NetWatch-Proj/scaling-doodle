@@ -7,13 +7,23 @@ defmodule ScalingDoodleWeb.LiveUserAuth do
 
   import Phoenix.Component
 
+  alias AshAuthentication.Phoenix.LiveSession
+
+  @type mount_param :: any()
+  @type session :: map()
+  @type socket :: Phoenix.LiveView.Socket.t()
+
+  @spec on_mount(:current_user, mount_param(), session(), socket()) ::
+          {:cont, socket()} | {:halt, socket()}
   # This is used for nested liveviews to fetch the current user.
   # To use, place the following at the top of that liveview:
   # on_mount {ScalingDoodleWeb.LiveUserAuth, :current_user}
   def on_mount(:current_user, _params, session, socket) do
-    {:cont, AshAuthentication.Phoenix.LiveSession.assign_new_resources(socket, session)}
+    {:cont, LiveSession.assign_new_resources(socket, session)}
   end
 
+  @spec on_mount(:live_user_optional, mount_param(), session(), socket()) ::
+          {:cont, socket()}
   def on_mount(:live_user_optional, _params, _session, socket) do
     if socket.assigns[:current_user] do
       {:cont, socket}
@@ -22,6 +32,8 @@ defmodule ScalingDoodleWeb.LiveUserAuth do
     end
   end
 
+  @spec on_mount(:live_user_required, mount_param(), session(), socket()) ::
+          {:cont, socket()} | {:halt, socket()}
   def on_mount(:live_user_required, _params, _session, socket) do
     if socket.assigns[:current_user] do
       {:cont, socket}
@@ -30,6 +42,8 @@ defmodule ScalingDoodleWeb.LiveUserAuth do
     end
   end
 
+  @spec on_mount(:live_no_user, mount_param(), session(), socket()) ::
+          {:cont, socket()} | {:halt, socket()}
   def on_mount(:live_no_user, _params, _session, socket) do
     if socket.assigns[:current_user] do
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}

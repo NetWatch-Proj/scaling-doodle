@@ -3,15 +3,14 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
 
   describe "authentication happy path" do
     test "unauthenticated user sees Sign In button on home page", %{conn: conn} do
-      conn = get(conn, ~p"/")
-      assert html_response(conn, 200) =~ "Sign In"
-      refute html_response(conn, 200) =~ "Sign Out"
+      response_conn = get(conn, ~p"/")
+      assert html_response(response_conn, 200) =~ "Sign In"
+      refute html_response(response_conn, 200) =~ "Sign Out"
     end
 
     test "user can view sign-in page", %{conn: conn} do
-      conn = get(conn, ~p"/sign-in")
-      # The sign-in page is a LiveView with "Sign In" text
-      assert html_response(conn, 200) =~ "Sign In"
+      response_conn = get(conn, ~p"/sign-in")
+      assert html_response(response_conn, 200) =~ "Sign In"
     end
 
     test "user can sign in with magic link", %{conn: conn} do
@@ -22,15 +21,15 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       token = magic_link_token(user: user)
 
       # Sign in with the token
-      conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
+      sign_in_conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
 
       # Should redirect to home page after successful sign in
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(sign_in_conn) == ~p"/"
 
       # Follow redirect and verify user is signed in
-      conn = get(recycle(conn), ~p"/")
-      assert html_response(conn, 200) =~ "Sign Out"
-      assert html_response(conn, 200) =~ email
+      home_conn = get(recycle(sign_in_conn), ~p"/")
+      assert html_response(home_conn, 200) =~ "Sign Out"
+      assert html_response(home_conn, 200) =~ email
     end
 
     test "user can sign out", %{conn: conn} do
@@ -41,30 +40,30 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       token = magic_link_token(user: user)
 
       # Sign in with the token
-      conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
+      sign_in_conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
 
       # Verify sign in worked
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(sign_in_conn) == ~p"/"
 
       # Follow the redirect and verify we're signed in
-      conn = get(recycle(conn), ~p"/")
-      assert html_response(conn, 200) =~ "Sign Out"
+      authenticated_conn = get(recycle(sign_in_conn), ~p"/")
+      assert html_response(authenticated_conn, 200) =~ "Sign Out"
 
       # Sign out
-      conn = get(recycle(conn), ~p"/sign-out")
-      assert redirected_to(conn) == ~p"/"
+      sign_out_conn = get(recycle(authenticated_conn), ~p"/sign-out")
+      assert redirected_to(sign_out_conn) == ~p"/"
 
       # Verify user is signed out
-      conn = get(recycle(conn), ~p"/")
-      assert html_response(conn, 200) =~ "Sign In"
+      unauthenticated_conn = get(recycle(sign_out_conn), ~p"/")
+      assert html_response(unauthenticated_conn, 200) =~ "Sign In"
     end
 
     test "invalid magic link token shows error", %{conn: conn} do
       # Try to sign in with an invalid token
-      conn = get(conn, ~p"/auth/user/magic_link?token=invalid_token")
+      response_conn = get(conn, ~p"/auth/user/magic_link?token=invalid_token")
 
       # Should redirect to sign-in page with error
-      assert redirected_to(conn) == ~p"/sign-in"
+      assert redirected_to(response_conn) == ~p"/sign-in"
     end
 
     test "multiple users can sign in independently", %{conn: conn} do
@@ -73,24 +72,24 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
 
       # User 1 signs in
       token1 = magic_link_token(user: user1)
-      conn = get(conn, ~p"/auth/user/magic_link?token=#{token1}")
-      assert redirected_to(conn) == ~p"/"
+      sign_in1_conn = get(conn, ~p"/auth/user/magic_link?token=#{token1}")
+      assert redirected_to(sign_in1_conn) == ~p"/"
 
       # Verify user1 is signed in
-      conn = get(recycle(conn), ~p"/")
-      assert html_response(conn, 200) =~ to_string(user1.email)
+      home1_conn = get(recycle(sign_in1_conn), ~p"/")
+      assert html_response(home1_conn, 200) =~ to_string(user1.email)
 
       # User 1 signs out
-      conn = get(recycle(conn), ~p"/sign-out")
+      sign_out_conn = get(recycle(home1_conn), ~p"/sign-out")
 
       # User 2 signs in
       token2 = magic_link_token(user: user2)
-      conn = get(recycle(conn), ~p"/auth/user/magic_link?token=#{token2}")
-      assert redirected_to(conn) == ~p"/"
+      sign_in2_conn = get(recycle(sign_out_conn), ~p"/auth/user/magic_link?token=#{token2}")
+      assert redirected_to(sign_in2_conn) == ~p"/"
 
       # Verify user2 is signed in
-      conn = get(recycle(conn), ~p"/")
-      assert html_response(conn, 200) =~ to_string(user2.email)
+      home2_conn = get(recycle(sign_in2_conn), ~p"/")
+      assert html_response(home2_conn, 200) =~ to_string(user2.email)
     end
   end
 end

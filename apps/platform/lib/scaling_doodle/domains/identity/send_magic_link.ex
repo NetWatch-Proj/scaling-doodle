@@ -1,7 +1,6 @@
 defmodule ScalingDoodle.Identity.SendMagicLink do
   @moduledoc """
   Sends a magic link email to the user.
-  In development, the link is also logged to the console.
   """
   use AshAuthentication.Sender
 
@@ -9,17 +8,13 @@ defmodule ScalingDoodle.Identity.SendMagicLink do
 
   alias ScalingDoodle.Mailer
 
-  @impl true
+  require Logger
+
+  @impl AshAuthentication.Sender
   def send(user, token, _opts) do
-    # Get the email from the user - it could be a struct or just have an email field
     email = get_email(user)
 
-    # Log the magic link for easy access during development
-    IO.puts("\n============ MAGIC LINK ============")
-    IO.puts("Email: #{email}")
-    IO.puts("Token: #{token}")
-    IO.puts("Link:  http://localhost:4000/auth/user/magic_link?token=#{token}")
-    IO.puts("====================================\n")
+    Logger.debug("Magic link for #{email}: http://localhost:4000/auth/user/magic_link?token=#{token}")
 
     email_msg =
       new()
@@ -39,7 +34,7 @@ defmodule ScalingDoodle.Identity.SendMagicLink do
       """)
 
     case Mailer.deliver(email_msg) do
-      {:ok, _} -> :ok
+      {:ok, _result} -> :ok
       {:error, reason} -> {:error, reason}
     end
   end

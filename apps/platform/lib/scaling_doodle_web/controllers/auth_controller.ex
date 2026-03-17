@@ -9,7 +9,7 @@ defmodule ScalingDoodleWeb.AuthController do
       case activity do
         {:confirm_new_user, :confirm} -> "Your email address has now been confirmed"
         {:password, :reset} -> "Your password has successfully been reset"
-        _ -> "You are now signed in"
+        _activity -> "You are now signed in"
       end
 
     conn
@@ -21,26 +21,9 @@ defmodule ScalingDoodleWeb.AuthController do
     |> redirect(to: return_to)
   end
 
-  def failure(conn, activity, reason) do
-    message =
-      case {activity, reason} do
-        {_,
-         %AshAuthentication.Errors.AuthenticationFailed{
-           caused_by: %Ash.Error.Forbidden{
-             errors: [%AshAuthentication.Errors.CannotConfirmUnconfirmedUser{}]
-           }
-         }} ->
-          """
-          You have already signed in another way, but have not confirmed your account.
-          You can confirm your account using the link we sent to you, or by resetting your password.
-          """
-
-        _ ->
-          "Incorrect email or password"
-      end
-
+  def failure(conn, _activity, _reason) do
     conn
-    |> put_flash(:error, message)
+    |> put_flash(:error, "Incorrect email or password")
     |> redirect(to: ~p"/sign-in")
   end
 

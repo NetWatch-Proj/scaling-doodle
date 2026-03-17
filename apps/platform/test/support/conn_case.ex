@@ -24,10 +24,10 @@ defmodule ScalingDoodleWeb.ConnCase do
       # Import conveniences for testing with connections
       import Phoenix.ConnTest
       import Plug.Conn
+      import ScalingDoodle.Generator
       import ScalingDoodleWeb.ConnCase
 
       # Import test data generators
-      import ScalingDoodle.Generator
 
       # The default endpoint for testing
       @endpoint ScalingDoodleWeb.Endpoint

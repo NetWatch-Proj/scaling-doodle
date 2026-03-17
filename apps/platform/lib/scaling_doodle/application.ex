@@ -7,15 +7,14 @@ defmodule ScalingDoodle.Application do
 
   @impl Application
   def start(_type, _args) do
+    ash_domains = Application.fetch_env!(:scaling_doodle, :ash_domains)
+    oban_config = Application.fetch_env!(:scaling_doodle, Oban)
+
     children = [
       ScalingDoodleWeb.Telemetry,
       ScalingDoodle.Repo,
       {DNSCluster, query: Application.get_env(:scaling_doodle, :dns_cluster_query) || :ignore},
-      {Oban,
-       AshOban.config(
-         Application.fetch_env!(:scaling_doodle, :ash_domains),
-         Application.fetch_env!(:scaling_doodle, Oban)
-       )},
+      {Oban, AshOban.config(ash_domains, oban_config)},
       {Phoenix.PubSub, name: ScalingDoodle.PubSub},
       # Start a worker by calling: ScalingDoodle.Worker.start_link(arg)
       # {ScalingDoodle.Worker, arg},
