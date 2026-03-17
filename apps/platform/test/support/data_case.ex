@@ -24,6 +24,7 @@ defmodule ScalingDoodle.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import ScalingDoodle.DataCase
+      import ScalingDoodle.Generator
 
       alias ScalingDoodle.Repo
     end

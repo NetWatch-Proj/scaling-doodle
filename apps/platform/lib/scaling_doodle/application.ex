@@ -7,15 +7,20 @@ defmodule ScalingDoodle.Application do
 
   @impl Application
   def start(_type, _args) do
+    ash_domains = Application.fetch_env!(:scaling_doodle, :ash_domains)
+    oban_config = Application.fetch_env!(:scaling_doodle, Oban)
+
     children = [
       ScalingDoodleWeb.Telemetry,
       ScalingDoodle.Repo,
       {DNSCluster, query: Application.get_env(:scaling_doodle, :dns_cluster_query) || :ignore},
+      {Oban, AshOban.config(ash_domains, oban_config)},
       {Phoenix.PubSub, name: ScalingDoodle.PubSub},
       # Start a worker by calling: ScalingDoodle.Worker.start_link(arg)
       # {ScalingDoodle.Worker, arg},
       # Start to serve requests, typically the last entry
-      ScalingDoodleWeb.Endpoint
+      ScalingDoodleWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :scaling_doodle]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
