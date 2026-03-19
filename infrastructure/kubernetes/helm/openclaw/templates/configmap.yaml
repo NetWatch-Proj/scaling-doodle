@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.instance.name }}-config
+data:
+  NODE_ENV: "production"
+  # See: https://docs.openclaw.ai/gateway/configuration
+  openclaw.json: |
+    {
+      "gateway": {
+        "bind": "lan",
+        "port": 18789,
+        "mode": "local"
+      },
+      "models": {
+        "providers": {
+          "zai": {
+            "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+            "apiKey": "${ZAI_API_KEY}",
+            "models": [
+              {
+                "id": "glm-5",
+                "name": "GLM-5",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-5-turbo",
+                "name": "GLM-5-Turbo",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.7",
+                "name": "GLM-4.7",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.7-flash",
+                "name": "GLM-4.7-Flash",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.6",
+                "name": "GLM-4.6",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.5",
+                "name": "GLM-4.5",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.5-air",
+                "name": "GLM-4.5-Air",
+                "reasoning": true,
+                "input": ["text"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.5V",
+                "name": "GLM-4.5V",
+                "reasoning": true,
+                "input": ["text", "image"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              },
+              {
+                "id": "glm-4.6V",
+                "name": "GLM-4.6V",
+                "reasoning": true,
+                "input": ["text", "image"],
+                "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
+                "contextWindow": 204800,
+                "maxTokens": 131072
+              }
+            ]
+          }
+        }
+      },
+      "agents": {
+        "defaults": {
+          "model": {
+            "primary": "{{ .Values.config.defaultModel }}",
+            "fallbacks": ["zai/glm-4.7", "zai/glm-4.6", "zai/glm-4.5-air"]
+          },
+          "models": {
+            "zai/glm-5": {"alias": "GLM"},
+            "zai/glm-5-turbo": {},
+            "zai/glm-4.7": {},
+            "zai/glm-4.7-flash": {},
+            "zai/glm-4.6": {},
+            "zai/glm-4.5": {},
+            "zai/glm-4.5-air": {},
+            "zai/glm-4.5V": {},
+            "zai/glm-4.6V": {}
+          }
+        }
+      }
+    }
