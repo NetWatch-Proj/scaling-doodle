@@ -1,0 +1,57 @@
+image:
+  repository: ghcr.io/openclaw/openclaw
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+instance:
+  name: "my-openclaw"
+  tier: "starter"
+
+resources:
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+
+config:
+  # Model provider (set via API or config)
+  # See: https://docs.openclaw.ai/concepts/models
+  # Supported: "anthropic", "openai", "synthetic", "google", "ollama", "openrouter", "zai", etc.
+  modelProvider: "zai"
+  # Recommended models: zai/glm-5-turbo, zai/glm-5, zai/glm-4.7, zai/glm-4.7-flash
+  defaultModel: "zai/glm-5-turbo"
+
+  # Channels to enable (config depends on channel)
+  # See: https://docs.openclaw.ai/channels
+  channels:
+    telegram: false
+    discord: false
+    slack: false
+
+secrets:
+  # API keys (set dynamically based on provider)
+  # Model providers - only populate the one matching your config.modelProvider
+  zaiApiKey: ""              # Zhipu AI (zai) API key
+  syntheticApiKey: ""        # From https://synthetic.new/
+  anthropicApiKey: ""        # From https://console.anthropic.com/
+  openaiApiKey: ""           # From https://platform.openai.com/
+  googleApiKey: ""           # From Google AI Studio
+  openRouterApiKey: ""       # From https://openrouter.ai/
+  # Channel tokens
+  telegramBotToken: ""
+  discordBotToken: ""
+  slackBotToken: ""
+  slackAppToken: ""
+
+persistence:
+  enabled: true
+  size: "1Gi"
+
+service:
+  type: ClusterIP
+  port: 18789
+
+ingress:
+  enabled: false
