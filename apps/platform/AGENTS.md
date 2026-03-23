@@ -371,3 +371,71 @@ Where the server handled it via:
       document = LazyHTML.from_fragment(html)
       matches = LazyHTML.filter(document, "your-complex-selector")
       IO.inspect(matches, label: "Matches")
+
+## Kubernetes Infrastructure
+
+This application manages OpenClaw instances running on Kubernetes clusters.
+
+### Architecture
+
+- **Platform Cluster**: Runs the Phoenix application, PostgreSQL, and management services
+- **Customer Clusters**: Multiple clusters (AWS EKS, GCP GKE, Azure AKS) running OpenClaw instances
+- **Local Development**: Uses kind cluster for testing
+
+### Connection Methods
+
+The application supports three connection patterns via `ScalingDoodle.Kubernetes.Connection`:
+
+1. **External** (Local Development): Phoenix runs locally, uses `kubectl` with kubeconfig
+2. **In-Cluster** (Production): Phoenix runs in Kubernetes, uses ServiceAccount
+3. **Multi-Cluster** (Future): OIDC authentication to external customer clusters
+
+### Configuration
+
+**Local Development** (`config/dev.exs`):
+```elixir
+config :scaling_doodle, :kubernetes,
+  connection_type: :external,
+  kubeconfig_path: "~/.kube/config",
+  context: "kind-openclaw-platform"
+```
+
+**Production** (`config/runtime.exs`):
+```elixir
+config :scaling_doodle, :kubernetes,
+  connection_type: :in_cluster
+```
+
+### Usage
+
+```elixir
+# Check kubectl availability
+ScalingDoodle.Kubernetes.Connection.kubectl_available?()
+
+# Execute kubectl commands
+{:ok, nodes} = ScalingDoodle.Kubernetes.Connection.kubectl("local", ["get", "nodes"])
+
+# Get connection config
+{:ok, config} = ScalingDoodle.Kubernetes.Connection.config("local")
+```
+
+### RBAC
+
+When Phoenix runs in-cluster, it uses a ServiceAccount with permissions to:
+- Create/delete namespaces for tenants
+- Manage deployments, services, configmaps, secrets, PVCs
+- Read pods and logs
+
+See `infrastructure/kubernetes/kustomize/base/rbac.yaml` for the complete RBAC configuration.
+
+### Local Development Setup
+
+Run the setup script:
+```bash
+./scripts/setup-local-dev.sh
+```
+
+This will:
+1. Create a kind cluster (if not exists)
+2. Deploy PostgreSQL and RBAC manifests
+3. Port-forward PostgreSQL to localhost:5432
