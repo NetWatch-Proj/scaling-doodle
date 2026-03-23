@@ -95,8 +95,9 @@ defmodule ScalingDoodle.MixProject do
       {:styler, "1.10.0", only: [:dev, :test], runtime: false},
       {:swoosh, "1.23.0"},
       {:tailwind, "0.4.1", runtime: Mix.env() == :dev},
-      {:telemetry_metrics, "1.1.0"},
-      {:telemetry_poller, "1.3.0"}
+      {:telemetry_metrics, "~> 1.1.0"},
+      {:telemetry_poller, "~> 1.3.0"},
+      {:ymlr, "~> 5.0"}
     ]
   end
 
