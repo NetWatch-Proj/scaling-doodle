@@ -87,6 +87,13 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
     ]
   ]
 
+# Kubernetes connection configuration for local development
+# Phoenix runs outside the cluster and uses kubectl to communicate with kind
+config :scaling_doodle, :kubernetes,
+  connection_type: :external,
+  kubeconfig_path: "~/.kube/config",
+  context: "kind-openclaw-platform"
+
 # Enable dev routes for dashboard and mailbox
 config :scaling_doodle, dev_routes: true, token_signing_secret: "LL5BSpTNZ+CmEryG91YSurM+qFeflbqh"
 

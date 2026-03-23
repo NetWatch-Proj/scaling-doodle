@@ -1,0 +1,101 @@
+# RBAC configuration for the platform application
+# This ServiceAccount and associated permissions are used when Phoenix runs
+# inside the Kubernetes cluster and needs to manage resources.
+#
+# Note: For the PoC, Phoenix runs locally and uses kubectl with the developer's
+# kubeconfig. These manifests are for the production deployment where Phoenix
+# runs as a Pod inside the platform cluster.
+
+---
+# ServiceAccount for the platform application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: platform-controller
+  namespace: platform
+  labels:
+    app: platform
+    component: controller
+automountServiceAccountToken: true
+
+---
+# ClusterRole with permissions needed to manage OpenClaw instances
+# These permissions allow the platform to:
+# - Create/delete namespaces for tenants
+# - Manage deployments, services, configmaps, secrets, PVCs in any namespace
+# - Read pods and logs for status monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: platform-controller
+  labels:
+    app: platform
+    component: controller
+rules:
+  # Namespace management (for creating tenant namespaces)
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Deployment management (for OpenClaw instances)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Service management (for OpenClaw services)
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # ConfigMap management (for OpenClaw configuration)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Secret management (for OpenClaw API keys)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # PersistentVolumeClaim management (for OpenClaw data persistence)
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Pod management (for status checks and log retrieval)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+  # Pod logs (for retrieving OpenClaw logs)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+  # Events (for debugging and monitoring)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+
+  # Helm releases (if using Helm operator)
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: ["helmreleases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# ClusterRoleBinding to bind the ServiceAccount to the ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: platform-controller
+  labels:
+    app: platform
+    component: controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: platform-controller
+subjects:
+  - kind: ServiceAccount
+    name: platform-controller
+    namespace: platform
