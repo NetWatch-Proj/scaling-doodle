@@ -4,10 +4,6 @@ name: openclaw-platform
 nodes:
   - role: control-plane
     extraPortMappings:
-      # Phoenix app
-      - containerPort: 30080
-        hostPort: 4000
-        protocol: TCP
       # OpenClaw instances (Gateway WebSocket)
       - containerPort: 31880
         hostPort: 18789

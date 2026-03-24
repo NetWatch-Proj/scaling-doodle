@@ -1,0 +1,154 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Instances
+    <:subtitle>Manage your OpenClaw instances</:subtitle>
+    <:actions>
+      <.button navigate={~p"/instances/new"}>
+        <.icon name="hero-plus" class="size-4 mr-1" /> New Instance
+      </.button>
+    </:actions>
+  </.header>
+
+  <%= if @live_action == :new do %>
+    <div class="modal modal-open">
+      <div class="modal-box max-w-2xl">
+        <h3 class="font-bold text-lg mb-4">Create New Instance</h3>
+
+        <.form
+          :let={f}
+          for={@form}
+          as={:instance}
+          id="instance-form"
+          phx-change="validate"
+          phx-submit="save"
+        >
+          <.input field={f[:name]} type="text" label="Name" placeholder="my-openclaw" required />
+
+          <.input
+            field={f[:model_provider]}
+            type="select"
+            label="Model Provider"
+            options={@providers}
+            required
+            phx-change="provider_changed"
+          />
+
+          <.input
+            field={f[:default_model]}
+            type="select"
+            label="Default Model"
+            options={@provider_models[@current_provider] || []}
+            required
+          />
+
+          <.input field={f[:api_key]} type="password" label="API Key" required />
+
+          <div class="modal-action">
+            <.link navigate={~p"/instances"} class="btn btn-ghost">
+              Cancel
+            </.link>
+            <.button type="submit">
+              Create Instance
+            </.button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%= if @live_action == :show do %>
+    <div class="card bg-base-100 shadow-xl mt-6">
+      <div class="card-body">
+        <h2 class="card-title text-2xl">{@instance.name}</h2>
+
+        <div class="divider"></div>
+
+        <.list>
+          <:item title="Status">
+            <span class={["badge", status_badge_class(@instance.status)]}>
+              {@instance.status}
+            </span>
+          </:item>
+          <:item title="Namespace">{@instance.namespace}</:item>
+          <:item title="Model Provider">{@instance.model_provider}</:item>
+          <:item title="Default Model">{@instance.default_model}</:item>
+          <:item title="Gateway Token">
+            <%= if @instance.gateway_token do %>
+              <div class="flex flex-col gap-1">
+                <code class="text-xs bg-base-200 px-2 py-1 rounded font-mono break-all">
+                  {@instance.gateway_token}
+                </code>
+                <span class="text-xs text-base-content/50">
+                  Copy this token to use with OpenClaw
+                </span>
+              </div>
+            <% else %>
+              <span class="text-base-content/50 italic">Not available yet</span>
+            <% end %>
+          </:item>
+          <:item title="Created">
+            {Calendar.strftime(@instance.inserted_at, "%Y-%m-%d %H:%M")}
+          </:item>
+        </.list>
+
+        <div class="card-actions justify-end mt-4">
+          <.link navigate={~p"/instances"} class="btn btn-ghost">
+            Back
+          </.link>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <%= if Enum.empty?(@instances) do %>
+      <div class="hero min-h-[400px] bg-base-200 rounded-box mt-6">
+        <div class="hero-content text-center">
+          <div class="max-w-md">
+            <.icon name="hero-server-stack" class="size-16 mx-auto mb-4 text-base-content/50" />
+            <h1 class="text-3xl font-bold">No instances yet</h1>
+            <p class="py-6 text-base-content/70">
+              Create your first OpenClaw instance to get started. It only takes a minute!
+            </p>
+            <.button navigate={~p"/instances/new"}>
+              <.icon name="hero-plus" class="size-4 mr-1" /> Create Instance
+            </.button>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="overflow-x-auto mt-6">
+        <.table id="instances" rows={@instances}>
+          <:col :let={instance} label="Name">
+            <.link navigate={~p"/instances/#{instance.id}"} class="font-medium hover:underline">
+              {instance.name}
+            </.link>
+          </:col>
+          <:col :let={instance} label="Status">
+            <span class={["badge", status_badge_class(instance.status)]}>
+              {instance.status}
+            </span>
+          </:col>
+          <:col :let={instance} label="Provider">{instance.model_provider}</:col>
+          <:col :let={instance} label="Model">{instance.default_model}</:col>
+          <:col :let={instance} label="Created">
+            {Calendar.strftime(instance.inserted_at, "%Y-%m-%d")}
+          </:col>
+          <:action :let={instance}>
+            <.button
+              navigate={~p"/instances/#{instance.id}"}
+              class="btn-ghost btn-sm"
+            >
+              <.icon name="hero-eye" class="size-4" />
+            </.button>
+            <.button
+              phx-click={JS.push("delete", value: %{id: instance.id})}
+              data-confirm="Are you sure you want to delete this instance? This will also remove all associated Kubernetes resources."
+              class="btn-ghost btn-sm text-error"
+            >
+              <.icon name="hero-trash" class="size-4" />
+            </.button>
+          </:action>
+        </.table>
+      </div>
+    <% end %>
+  <% end %>
+</Layouts.app>

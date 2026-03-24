@@ -24,18 +24,26 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.instance.name }}-secrets
                   key: ZAI_API_KEY
+            - name: GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.instance.name }}-secrets
+                  key: GATEWAY_TOKEN
           command:
             - sh
             - -c
             - |
               mkdir -p /home/node/.openclaw
-              # Replace environment variables in config template using awk (handles special chars better than sed)
-              awk -v key="$ZAI_API_KEY" '{gsub(/\\\$\{ZAI_API_KEY\}/, key)}1' /tmp/config/openclaw.json > /home/node/.openclaw/openclaw.json
+              # Use sed to replace environment variables (more reliable than awk for this)
+              sed -e "s|\\\${ZAI_API_KEY}|${ZAI_API_KEY}|g" \
+                  -e "s|\\\${GATEWAY_TOKEN}|${GATEWAY_TOKEN}|g" \
+                  /tmp/config/openclaw.json > /home/node/.openclaw/openclaw.json
               # Verify config was written
               if [ ! -s /home/node/.openclaw/openclaw.json ]; then
                 echo "ERROR: Config file is empty"
                 exit 1
               fi
+              echo "Config file created successfully"
               head -5 /home/node/.openclaw/openclaw.json
               chown -R 1000:1000 /home/node/.openclaw
           volumeMounts:

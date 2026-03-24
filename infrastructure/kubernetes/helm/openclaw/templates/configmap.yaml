@@ -10,7 +10,11 @@ data:
       "gateway": {
         "bind": "lan",
         "port": 18789,
-        "mode": "local"
+        "mode": "local",
+        "auth": {
+          "mode": "token",
+          "token": "${GATEWAY_TOKEN}"
+        }
       },
       "models": {
         "providers": {
