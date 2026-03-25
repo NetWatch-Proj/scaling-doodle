@@ -1,9 +1,10 @@
 defmodule ScalingDoodle.Instances.InstanceTest do
   use ScalingDoodle.DataCase, async: true
 
-  alias ScalingDoodle.Instances.Instance
-
   import ScalingDoodle.Generator
+
+  alias Ash.Error.Invalid
+  alias ScalingDoodle.Instances.Instance
 
   describe "create/2" do
     test "creates an instance with valid attributes" do
@@ -40,7 +41,7 @@ defmodule ScalingDoodle.Instances.InstanceTest do
         user: user
       }
 
-      assert {:error, %Ash.Error.Invalid{errors: errors}} =
+      assert {:error, %Invalid{errors: errors}} =
                Ash.create(Instance, attrs, actor: user, authorize?: false)
 
       assert Enum.any?(errors, fn error ->
@@ -60,7 +61,7 @@ defmodule ScalingDoodle.Instances.InstanceTest do
         user: user
       }
 
-      assert {:error, %Ash.Error.Invalid{errors: errors}} =
+      assert {:error, %Invalid{errors: errors}} =
                Ash.create(Instance, attrs, actor: user, authorize?: false)
 
       assert Enum.any?(errors, fn error ->
@@ -210,7 +211,7 @@ defmodule ScalingDoodle.Instances.InstanceTest do
     end
 
     test "validates status must be one of allowed values", %{instance: instance} do
-      assert {:error, %Ash.Error.Invalid{errors: errors}} =
+      assert {:error, %Invalid{errors: errors}} =
                Ash.update(instance, %{status: "invalid-status"},
                  action: :update_status,
                  authorize?: false

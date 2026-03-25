@@ -1,10 +1,10 @@
 defmodule ScalingDoodle.Instances.Changes.QueueDestroyJobChangeTest do
   use ScalingDoodle.DataCase, async: true
 
+  import ScalingDoodle.Generator
+
   alias ScalingDoodle.Instances.Instance
   alias ScalingDoodle.Instances.Workers.DestroyInstanceWorker
-
-  import ScalingDoodle.Generator
 
   describe "QueueDestroyJobChange" do
     test "destroys instance which triggers destroy job" do

@@ -26,8 +26,8 @@ defmodule ScalingDoodle.Types.EncryptedBinaryTest do
     end
 
     test "cast_input rejects non-binary values" do
-      assert {:error, _} = EncryptedBinary.cast_input(123, [])
-      assert {:error, _} = EncryptedBinary.cast_input(%{}, [])
+      assert {:error, _reason} = EncryptedBinary.cast_input(123, [])
+      assert {:error, _reason} = EncryptedBinary.cast_input(%{}, [])
       # Note: nil is accepted (returns {:ok, nil})
       assert {:ok, nil} = EncryptedBinary.cast_input(nil, [])
     end

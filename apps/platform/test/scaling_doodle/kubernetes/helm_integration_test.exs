@@ -21,14 +21,17 @@ defmodule ScalingDoodle.Kubernetes.HelmIntegrationTest do
     kubectl_available = System.find_executable("kubectl") != nil
     helm_available = System.find_executable("helm") != nil
 
-    unless kubectl_available and helm_available do
+    if !(kubectl_available and helm_available) do
       raise "kubectl and helm must be installed to run integration tests"
     end
 
     # Check if we can connect to a cluster
     case System.cmd("kubectl", ["version"], stderr_to_stdout: true) do
-      {_, 0} -> :ok
-      _ -> raise "Cannot connect to Kubernetes cluster. Please ensure a cluster is running."
+      {_output, 0} ->
+        :ok
+
+      {_reason, _code} ->
+        raise "Cannot connect to Kubernetes cluster. Please ensure a cluster is running."
     end
 
     :ok
@@ -43,9 +46,7 @@ defmodule ScalingDoodle.Kubernetes.HelmIntegrationTest do
 
     on_exit(fn ->
       # Cleanup namespace
-      System.cmd("kubectl", ["delete", "namespace", namespace, "--ignore-not-found=true"],
-        stderr_to_stdout: true
-      )
+      System.cmd("kubectl", ["delete", "namespace", namespace, "--ignore-not-found=true"], stderr_to_stdout: true)
     end)
 
     {:ok, namespace: namespace}
@@ -92,7 +93,7 @@ defmodule ScalingDoodle.Kubernetes.HelmIntegrationTest do
       }
 
       # Deploy
-      assert {:ok, _} =
+      assert {:ok, _output} =
                Helm.upgrade_install(release_name,
                  namespace: namespace,
                  values: values,
@@ -104,7 +105,7 @@ defmodule ScalingDoodle.Kubernetes.HelmIntegrationTest do
       assert status.status in ["deployed", "pending-install"]
 
       # Uninstall
-      assert {:ok, _} = Helm.uninstall(release_name, namespace: namespace)
+      assert {:ok, _result} = Helm.uninstall(release_name, namespace: namespace)
 
       # Verify release is gone
       assert {:ok, %{status: "not_found"}} = Helm.status(release_name, namespace: namespace)

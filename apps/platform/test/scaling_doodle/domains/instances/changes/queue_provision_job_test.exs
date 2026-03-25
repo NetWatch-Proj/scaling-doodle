@@ -1,10 +1,10 @@
 defmodule ScalingDoodle.Instances.Changes.QueueProvisionJobTest do
   use ScalingDoodle.DataCase, async: true
 
+  import ScalingDoodle.Generator
+
   alias ScalingDoodle.Instances.Instance
   alias ScalingDoodle.Instances.Workers.ProvisionInstanceWorker
-
-  import ScalingDoodle.Generator
 
   describe "QueueProvisionJob" do
     test "creates instance successfully which triggers provision job" do

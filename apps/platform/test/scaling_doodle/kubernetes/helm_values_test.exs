@@ -62,19 +62,31 @@ defmodule ScalingDoodle.Kubernetes.HelmValuesTest do
       }
 
       # Z.AI
-      zai = Helm.build_values(Map.put(base, :model_provider, "zai"))
+      zai =
+        base
+        |> Map.put(:model_provider, "zai")
+        |> Helm.build_values()
+
       assert zai.secrets.zaiApiKey == "secret-key"
       refute Map.has_key?(zai.secrets, :anthropicApiKey)
       refute Map.has_key?(zai.secrets, :openaiApiKey)
 
       # Anthropic
-      anthropic = Helm.build_values(Map.put(base, :model_provider, "anthropic"))
+      anthropic =
+        base
+        |> Map.put(:model_provider, "anthropic")
+        |> Helm.build_values()
+
       assert anthropic.secrets.anthropicApiKey == "secret-key"
       refute Map.has_key?(anthropic.secrets, :zaiApiKey)
       refute Map.has_key?(anthropic.secrets, :openaiApiKey)
 
       # OpenAI
-      openai = Helm.build_values(Map.put(base, :model_provider, "openai"))
+      openai =
+        base
+        |> Map.put(:model_provider, "openai")
+        |> Helm.build_values()
+
       assert openai.secrets.openaiApiKey == "secret-key"
       refute Map.has_key?(openai.secrets, :zaiApiKey)
       refute Map.has_key?(openai.secrets, :anthropicApiKey)
@@ -148,7 +160,7 @@ defmodule ScalingDoodle.Kubernetes.HelmValuesTest do
 
   describe "generate_gateway_token/0" do
     test "generates unique tokens" do
-      tokens = for _ <- 1..10, do: Helm.generate_gateway_token()
+      tokens = for _i <- 1..10, do: Helm.generate_gateway_token()
 
       # All tokens should be unique
       assert length(Enum.uniq(tokens)) == 10
