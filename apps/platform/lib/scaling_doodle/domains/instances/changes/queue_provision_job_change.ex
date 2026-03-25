@@ -1,10 +1,10 @@
-defmodule ScalingDoodle.Instances.Changes.QueueProvisionJob do
+defmodule ScalingDoodle.Instances.Changes.QueueProvisionJobChange do
   @moduledoc """
   Ash change that queues a provision job after the instance is created.
   """
   use Ash.Resource.Change
 
-  alias ScalingDoodle.Instances.Workers.ProvisionInstance
+  alias ScalingDoodle.Instances.Workers.ProvisionInstanceWorker
 
   require Logger
 
@@ -18,7 +18,7 @@ defmodule ScalingDoodle.Instances.Changes.QueueProvisionJob do
       {:ok, instance} ->
         job_result =
           %{"instance_id" => instance.id}
-          |> ProvisionInstance.new()
+          |> ProvisionInstanceWorker.new()
           |> Oban.insert()
 
         case job_result do

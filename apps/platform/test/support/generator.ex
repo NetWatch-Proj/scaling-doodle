@@ -38,6 +38,13 @@ defmodule ScalingDoodle.Generator do
   end
 
   @doc """
+  Generates a User and returns the user struct.
+  """
+  def generate_user(opts \\ []) do
+    generate(user(opts))
+  end
+
+  @doc """
   Generates a magic link token for a user.
 
   ## Options

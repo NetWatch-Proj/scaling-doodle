@@ -288,7 +288,7 @@ defmodule ScalingDoodle.Kubernetes.Helm do
   @spec build_values(map()) :: values()
   def build_values(instance) do
     tier = Map.get(instance, :tier, "standard")
-    gateway_token = instance.gateway_token || generate_gateway_token()
+    gateway_token = Map.get(instance, :gateway_token) || generate_gateway_token()
 
     %{
       instance: %{

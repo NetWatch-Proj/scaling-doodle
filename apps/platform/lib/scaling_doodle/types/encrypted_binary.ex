@@ -1,4 +1,4 @@
-defmodule ScalingDoodle.Vault.Types.EncryptedBinary do
+defmodule ScalingDoodle.Types.EncryptedBinary do
   @moduledoc """
   Ash type for encrypted binary fields using Cloak.
 

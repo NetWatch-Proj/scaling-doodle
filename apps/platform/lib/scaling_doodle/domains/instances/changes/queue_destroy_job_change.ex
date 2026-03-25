@@ -1,4 +1,4 @@
-defmodule ScalingDoodle.Instances.Changes.QueueDestroyJob do
+defmodule ScalingDoodle.Instances.Changes.QueueDestroyJobChange do
   @moduledoc """
   Ash change that queues a destroy job when the instance is deleted.
 
@@ -7,7 +7,7 @@ defmodule ScalingDoodle.Instances.Changes.QueueDestroyJob do
   """
   use Ash.Resource.Change
 
-  alias ScalingDoodle.Instances.Workers.DestroyInstance
+  alias ScalingDoodle.Instances.Workers.DestroyInstanceWorker
 
   require Logger
 
@@ -42,7 +42,7 @@ defmodule ScalingDoodle.Instances.Changes.QueueDestroyJob do
         "name" => instance.name,
         "namespace" => instance.namespace
       }
-      |> DestroyInstance.new()
+      |> DestroyInstanceWorker.new()
       |> Oban.insert()
 
     case job_result do

@@ -12,7 +12,17 @@ defmodule ScalingDoodle.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      test_coverage: [tool: ExCoveralls],
+      test_coverage: [
+        tool: ExCoveralls,
+        ignore_modules: [
+          ~r/ScalingDoodleWeb\.Live/,
+          ScalingDoodle.Mailer,
+          ScalingDoodleWeb.AuthOverrides,
+          ScalingDoodleWeb.PageHTML,
+          ~r/ScalingDoodle\.Identity\.Token/,
+          ~r/ScalingDoodle\.Identity\.User/
+        ]
+      ],
       dialyzer: [
         plt_add_apps: [
           :ex_unit
@@ -81,7 +91,12 @@ defmodule ScalingDoodle.MixProject do
       {:excoveralls, "0.18.5", only: :test},
       {:gettext, "1.0.2"},
       {:heroicons,
-       github: "tailwindlabs/heroicons", tag: "v2.2.0", sparse: "optimized", app: false, compile: false, depth: 1},
+       github: "tailwindlabs/heroicons",
+       tag: "v2.2.0",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1},
       {:jason, "1.4.4"},
       {:lazy_html, "0.1.10", only: :test},
       {:phoenix, "1.8.5"},
@@ -92,6 +107,7 @@ defmodule ScalingDoodle.MixProject do
       {:phoenix_live_view, "1.1.26"},
       {:postgrex, "0.22.0"},
       {:req, "0.5.17"},
+      {:mox, "~> 1.0", only: :test},
       {:styler, "1.10.0", only: [:dev, :test], runtime: false},
       {:swoosh, "1.23.0"},
       {:tailwind, "0.4.1", runtime: Mix.env() == :dev},

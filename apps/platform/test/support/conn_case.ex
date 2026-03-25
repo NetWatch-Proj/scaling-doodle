@@ -17,6 +17,11 @@ defmodule ScalingDoodleWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  import Phoenix.ConnTest
+
+  # Define endpoint at module level for log_in_user
+  @endpoint ScalingDoodleWeb.Endpoint
+
   using do
     quote do
       use ScalingDoodleWeb, :verified_routes
@@ -37,5 +42,17 @@ defmodule ScalingDoodleWeb.ConnCase do
   setup tags do
     ScalingDoodle.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  @doc """
+  Logs in a user for testing via magic link.
+  """
+  def log_in_user(conn, user) do
+    token = ScalingDoodle.Generator.magic_link_token(user: user)
+
+    # Simulate visiting the magic link to authenticate
+    conn
+    |> get("/auth/user/magic_link?token=#{token}")
+    |> recycle()
   end
 end

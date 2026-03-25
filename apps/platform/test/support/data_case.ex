@@ -25,6 +25,8 @@ defmodule ScalingDoodle.DataCase do
       import Ecto.Query
       import ScalingDoodle.DataCase
       import ScalingDoodle.Generator
+      import Oban.Testing, only: [assert_enqueued: 1, all_enqueued: 1]
+      import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
 
       alias ScalingDoodle.Repo
     end
