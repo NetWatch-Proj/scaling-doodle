@@ -372,6 +372,93 @@ Where the server handled it via:
       matches = LazyHTML.filter(document, "your-complex-selector")
       IO.inspect(matches, label: "Matches")
 
+## Code Architecture Patterns
+
+### Module Organization
+
+Modules are organized by domain following Ash Framework conventions:
+
+```
+lib/scaling_doodle/
+├── domains/
+│   └── instances/              # Instance management domain
+│       ├── changes/          # Ash.Resource.Change modules
+│       ├── services/         # Business logic services
+│       └── workers/          # Oban job workers
+├── types/                    # Shared Ash types
+└── kubernetes/              # Infrastructure concerns
+```
+
+### Module Naming Conventions (Enforced by Credo)
+
+- **Workers**: Must end with `Worker` (e.g., `ProvisionInstanceWorker`)
+- **Services**: Must end with `Service` (e.g., `ProvisionInstanceService`)
+- **Changes**: Must end with `Change` (e.g., `QueueProvisionJobChange`)
+
+### Service/Worker Architecture Pattern
+
+This codebase follows a strict three-layer pattern for async operations:
+
+#### Layer 1: Change (Ash Hook)
+Triggered by Ash resource actions, queues Oban job after DB transaction:
+
+```elixir
+def change(changeset, _opts, _context) do
+  Ash.Changeset.after_transaction(changeset, &queue_job/2)
+end
+```
+
+#### Layer 2: Worker (Oban Job)
+Thin wrapper that delegates to Service:
+
+```elixir
+def perform(%Oban.Job{args: %{"id" => id}}) do
+  MyService.call(id)
+end
+```
+
+**Rules:**
+- Max 15 lines in `perform/1`
+- Must call `Service.call()` only
+- No business logic (no case/cond/if-else)
+- No direct DB/external calls
+
+#### Layer 3: Service (Business Logic)
+Encapsulates all business logic with standard interface:
+
+```elixir
+def call(args) do
+  # All business logic here
+  {:ok, result} | {:error, reason}
+end
+```
+
+**Rules:**
+- Single public function: `call/1`
+- Returns `{:ok, result}` or `{:error, reason}`
+- Can use Ash, Repo, Helm, HTTP, etc.
+- Private helper functions for implementation
+
+### Custom Credo Rules
+
+Four custom rules enforce these patterns:
+
+1. **RequireModuleSuffix**: Enforces Worker/Service/Change suffixes
+2. **NoWorkerBusinessLogic**: Workers max 15 lines, no business logic
+3. **RequireServiceCall**: Workers must call `Service.call()`
+4. **RequireServiceInterface**: Services must define `call` function
+
+Rules are in `credo/checks/` directory and loaded in `.credo.exs`.
+
+### Creating Async Features
+
+Use these skills when creating async workflows:
+
+- `.skills/create-async-feature/` - Complete Change → Worker → Service flow
+- `.skills/create-ash-change/` - Just the Change module
+- `.skills/create-worker-module/` - Just the Worker module
+- `.skills/create-service-module/` - Just the Service module
+
 ## Kubernetes Infrastructure
 
 This application manages OpenClaw instances running on Kubernetes clusters.
