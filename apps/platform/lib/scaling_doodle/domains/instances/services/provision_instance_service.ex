@@ -16,12 +16,12 @@ defmodule ScalingDoodle.Instances.Services.ProvisionInstanceService do
   require Logger
 
   @doc """
-  Provisions an instance to Kubernetes.
+  Entry point for the service. Provisions an instance to Kubernetes.
 
   Returns {:ok, instance} on success or {:error, reason} on failure.
   """
-  @spec provision(String.t()) :: {:ok, Instance.t()} | {:error, term()}
-  def provision(instance_id) do
+  @spec call(String.t()) :: {:ok, Instance.t()} | {:error, term()}
+  def call(instance_id) do
     case Ash.get(Instance, instance_id, authorize?: false) do
       {:ok, instance} ->
         do_provision(instance)

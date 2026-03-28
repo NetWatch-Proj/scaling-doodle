@@ -16,6 +16,6 @@ defmodule ScalingDoodle.Instances.Workers.ProvisionInstanceWorker do
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"instance_id" => instance_id}}) do
     Logger.info("ProvisionInstanceWorker started for instance #{instance_id}")
-    ProvisionInstanceService.provision(instance_id)
+    ProvisionInstanceService.call(instance_id)
   end
 end

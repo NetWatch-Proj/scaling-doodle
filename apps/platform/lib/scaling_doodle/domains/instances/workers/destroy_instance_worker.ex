@@ -19,6 +19,6 @@ defmodule ScalingDoodle.Instances.Workers.DestroyInstanceWorker do
     namespace = args["namespace"]
 
     Logger.info("DestroyInstanceWorker started for instance #{name}")
-    DestroyInstanceService.destroy(name, namespace)
+    DestroyInstanceService.call(%{name: name, namespace: namespace})
   end
 end

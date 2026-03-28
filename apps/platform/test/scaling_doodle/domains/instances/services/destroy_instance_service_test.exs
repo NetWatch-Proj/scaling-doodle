@@ -3,9 +3,9 @@ defmodule ScalingDoodle.Instances.Services.DestroyInstanceServiceTest do
 
   alias ScalingDoodle.Instances.Services.DestroyInstanceService
 
-  describe "destroy/2" do
-    test "module exists and exports destroy/2" do
-      assert function_exported?(DestroyInstanceService, :destroy, 2)
+  describe "call/1" do
+    test "module exists and exports call/1" do
+      assert function_exported?(DestroyInstanceService, :call, 1)
     end
   end
 end

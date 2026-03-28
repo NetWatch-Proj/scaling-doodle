@@ -12,12 +12,17 @@ defmodule ScalingDoodle.Instances.Services.DestroyInstanceService do
   require Logger
 
   @doc """
-  Destroys an instance from Kubernetes.
+  Entry point for the service. Destroys an instance from Kubernetes.
+
+  Args should be a map with:
+  - `name` - the instance/release name
+  - `namespace` - the Kubernetes namespace
 
   Returns {:ok, output} on success or {:error, reason} on failure.
   """
-  @spec destroy(String.t(), String.t()) :: {:ok, String.t()} | {:error, term()}
-  def destroy(name, namespace) do
+  @spec call(%{name: String.t(), namespace: String.t()}) ::
+          {:ok, String.t()} | {:error, term()}
+  def call(%{name: name, namespace: namespace}) do
     Logger.info("Starting destroy for instance #{name}")
 
     case Helm.uninstall(name, namespace: namespace) do
