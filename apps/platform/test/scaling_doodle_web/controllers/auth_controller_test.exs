@@ -94,15 +94,17 @@ defmodule ScalingDoodleWeb.AuthControllerTest do
       assert html_response(home2_conn, 200) =~ to_string(user2.email)
     end
 
-    test "sign in shows success message", %{conn: conn} do
-      user = generate(user())
+    test "sign in shows user email on home page", %{conn: conn} do
+      email = "signin-test@example.com"
+      user = generate(user(email: email))
       token = magic_link_token(user: user)
 
       sign_in_conn = get(conn, ~p"/auth/user/magic_link?token=#{token}")
 
-      # Follow redirect to see the flash message
+      # Follow redirect to see the signed-in home page
       authenticated_conn = get(recycle(sign_in_conn), ~p"/")
-      assert html_response(authenticated_conn, 200) =~ "You are now signed in"
+      assert html_response(authenticated_conn, 200) =~ email
+      assert html_response(authenticated_conn, 200) =~ "You are signed in as"
     end
   end
 end

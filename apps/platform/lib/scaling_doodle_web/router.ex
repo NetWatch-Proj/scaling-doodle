@@ -9,69 +9,68 @@ defmodule ScalingDoodleWeb.Router do
   alias ScalingDoodle.Identity.User
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :put_root_layout, html: {ScalingDoodleWeb.Layouts, :root}
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug :load_from_session
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, html: {ScalingDoodleWeb.Layouts, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(:load_from_session)
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
-    plug :load_from_bearer
-    plug :set_actor, :user
+    plug(:accepts, ["json"])
+    plug(:load_from_bearer)
+    plug(:set_actor, :user)
   end
 
   scope "/", ScalingDoodleWeb do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    ash_authentication_live_session :authenticated_routes do
-      # in each liveview, add one of the following at the top of the module:
-      #
-      # If an authenticated user must be present:
-      # on_mount {ScalingDoodleWeb.LiveUserAuth, :live_user_required}
-      #
-      # If an authenticated user *may* be present:
-      # on_mount {ScalingDoodleWeb.LiveUserAuth, :live_user_optional}
-      #
-      # If an authenticated user must *not* be present:
-      # on_mount {ScalingDoodleWeb.LiveUserAuth, :live_no_user}
+    ash_authentication_live_session :authenticated_routes,
+      on_mount: [{ScalingDoodleWeb.LiveUserAuth, :live_user_required}] do
+      live("/instances", InstancesLive.Index, :index)
+      live("/instances/new", InstancesLive.Index, :new)
+      live("/instances/:id", InstancesLive.Index, :show)
     end
   end
 
   scope "/", ScalingDoodleWeb do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    get "/", PageController, :home
-    auth_routes AuthController, User, path: "/auth"
-    sign_out_route AuthController
+    get("/", PageController, :home)
+    auth_routes(AuthController, User, path: "/auth")
+    sign_out_route(AuthController)
 
     # Remove these if you'd like to use your own authentication views
-    sign_in_route register_path: "/register",
-                  reset_path: "/reset",
-                  auth_routes_prefix: "/auth",
-                  on_mount: [{ScalingDoodleWeb.LiveUserAuth, :live_no_user}],
-                  overrides: [
-                    ScalingDoodleWeb.AuthOverrides,
-                    DaisyUI
-                  ]
+    sign_in_route(
+      register_path: "/register",
+      reset_path: "/reset",
+      auth_routes_prefix: "/auth",
+      on_mount: [{ScalingDoodleWeb.LiveUserAuth, :live_no_user}],
+      overrides: [
+        ScalingDoodleWeb.AuthOverrides,
+        DaisyUI
+      ]
+    )
 
     # Remove this if you do not want to use the reset password feature
-    reset_route auth_routes_prefix: "/auth",
-                overrides: [
-                  ScalingDoodleWeb.AuthOverrides,
-                  DaisyUI
-                ]
-
-    # Remove this if you do not use the confirmation strategy
-    confirm_route User, :confirm_new_user,
+    reset_route(
       auth_routes_prefix: "/auth",
       overrides: [
         ScalingDoodleWeb.AuthOverrides,
         DaisyUI
       ]
+    )
+
+    # Remove this if you do not use the confirmation strategy
+    confirm_route(User, :confirm_new_user,
+      auth_routes_prefix: "/auth",
+      overrides: [
+        ScalingDoodleWeb.AuthOverrides,
+        DaisyUI
+      ]
+    )
 
     # Remove this if you do not use the magic link strategy.
     magic_sign_in_route(User, :magic_link,
@@ -98,14 +97,14 @@ defmodule ScalingDoodleWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      live_dashboard "/dashboard", metrics: ScalingDoodleWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      live_dashboard("/dashboard", metrics: ScalingDoodleWeb.Telemetry)
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
 
     scope "/" do
-      pipe_through :browser
+      pipe_through(:browser)
 
       oban_dashboard("/oban")
     end
@@ -115,9 +114,9 @@ defmodule ScalingDoodleWeb.Router do
     import AshAdmin.Router
 
     scope "/admin" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      ash_admin "/"
+      ash_admin("/")
     end
   end
 end

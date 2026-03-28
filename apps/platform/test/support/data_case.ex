@@ -23,6 +23,8 @@ defmodule ScalingDoodle.DataCase do
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
+      import Mox, only: [expect: 3, expect: 4, verify_on_exit!: 1]
+      import Oban.Testing, only: [assert_enqueued: 1, all_enqueued: 1]
       import ScalingDoodle.DataCase
       import ScalingDoodle.Generator
 

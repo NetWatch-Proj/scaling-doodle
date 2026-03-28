@@ -49,7 +49,12 @@
       # If you create your own checks, you must specify the source files for
       # them here, so they can be loaded by Credo before running the analysis.
       #
-      requires: [],
+      requires: [
+        "credo/checks/consistency/require_module_suffix.ex",
+        "credo/checks/refactor/no_worker_business_logic.ex",
+        "credo/checks/design/require_service_call.ex",
+        "credo/checks/design/require_service_interface.ex"
+      ],
       #
       # If you want to enforce a style guide and need a more traditional linting
       # experience, you can change `strict` to `true` below:
@@ -85,6 +90,24 @@
           {Credo.Check.Consistency.SpaceInParentheses, []},
           {Credo.Check.Consistency.TabsOrSpaces, []},
           {Credo.Check.Consistency.UnusedVariableNames, [force: :meaningful]},
+
+          #
+          # Custom Checks
+          #
+          {Credo.Check.Consistency.RequireModuleSuffix,
+           [
+             patterns: [
+               {"lib/**/workers/*.ex", "Worker"},
+               {"lib/**/services/*.ex", "Service"},
+               {"lib/**/changes/*.ex", "Change"}
+             ]
+           ]},
+          {Credo.Check.Refactor.NoWorkerBusinessLogic,
+           [
+             max_perform_lines: 15
+           ]},
+          {Credo.Check.Design.RequireServiceCall, []},
+          {Credo.Check.Design.RequireServiceInterface, []},
 
           #
           ## Design Checks

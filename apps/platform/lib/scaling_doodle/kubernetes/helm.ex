@@ -47,16 +47,22 @@ defmodule ScalingDoodle.Kubernetes.Helm do
   @typedoc "Options for Helm operations"
   @type opts :: keyword()
 
-  @chart_path Path.join([
-                File.cwd!(),
-                "..",
-                "..",
-                "..",
-                "infrastructure",
-                "kubernetes",
-                "helm",
-                "openclaw"
-              ])
+  # Chart path - read from config with fallback to env var
+  defp chart_path do
+    config = Application.get_env(:scaling_doodle, :kubernetes, [])
+
+    Keyword.get(config, :chart_path) ||
+      System.get_env("OPENCLAW_CHART_PATH") ||
+      default_chart_path()
+  end
+
+  defp default_chart_path do
+    # Fallback: Try to find it relative to current working directory
+    # This works when running from project root
+    File.cwd!()
+    |> Path.join("infrastructure/kubernetes/helm/openclaw")
+    |> Path.expand()
+  end
 
   @doc """
   Deploys or upgrades a Helm release.
@@ -100,7 +106,7 @@ defmodule ScalingDoodle.Kubernetes.Helm do
       "upgrade",
       "--install",
       name,
-      @chart_path,
+      chart_path(),
       "--namespace",
       namespace,
       "--values",
@@ -113,7 +119,7 @@ defmodule ScalingDoodle.Kubernetes.Helm do
     final_args = with_wait ++ ["--create-namespace"]
 
     try do
-      case Connection.kubectl(cluster_id, final_args) do
+      case Connection.helm(cluster_id, final_args) do
         {:ok, output} ->
           {:ok, output}
 
@@ -148,7 +154,7 @@ defmodule ScalingDoodle.Kubernetes.Helm do
     base_args = ["uninstall", name, "--namespace", namespace]
     final_args = if keep_history, do: base_args ++ ["--keep-history"], else: base_args
 
-    case Connection.kubectl(cluster_id, final_args) do
+    case Connection.helm(cluster_id, final_args) do
       {:ok, output} ->
         {:ok, output}
 
@@ -199,7 +205,7 @@ defmodule ScalingDoodle.Kubernetes.Helm do
       "json"
     ]
 
-    case Connection.kubectl(cluster_id, args) do
+    case Connection.helm(cluster_id, args) do
       {:ok, output} ->
         case Jason.decode(output) do
           {:ok, status} ->
@@ -281,18 +287,32 @@ defmodule ScalingDoodle.Kubernetes.Helm do
   """
   @spec build_values(map()) :: values()
   def build_values(instance) do
+    tier = Map.get(instance, :tier, "standard")
+    gateway_token = Map.get(instance, :gateway_token) || generate_gateway_token()
+
     %{
       instance: %{
         name: instance.name,
-        tier: instance.tier
+        tier: tier
       },
       config: %{
         modelProvider: instance.model_provider,
         defaultModel: instance.default_model
       },
-      secrets: build_secrets(instance),
-      resources: get_tier_resources(instance.tier)
+      secrets: build_secrets(instance, gateway_token),
+      resources: get_tier_resources(tier)
     }
+  end
+
+  @doc """
+  Generates a secure random gateway token for OpenClaw.
+  """
+  @spec generate_gateway_token() :: String.t()
+  def generate_gateway_token do
+    # Generate a 48-character hex token (24 bytes)
+    24
+    |> :crypto.strong_rand_bytes()
+    |> Base.encode16(case: :lower)
   end
 
   # Private functions
@@ -304,14 +324,18 @@ defmodule ScalingDoodle.Kubernetes.Helm do
     path
   end
 
-  defp build_secrets(instance) do
+  defp build_secrets(instance, gateway_token) do
     # Add API key for the selected provider
-    case instance.model_provider do
-      "zai" -> %{zaiApiKey: instance.api_key}
-      "anthropic" -> %{anthropicApiKey: instance.api_key}
-      "openai" -> %{openaiApiKey: instance.api_key}
-      _other -> %{}
-    end
+    api_key_secret =
+      case instance.model_provider do
+        "zai" -> %{zaiApiKey: instance.api_key}
+        "anthropic" -> %{anthropicApiKey: instance.api_key}
+        "openai" -> %{openaiApiKey: instance.api_key}
+        _other -> %{}
+      end
+
+    # Merge with gateway token
+    Map.put(api_key_secret, :gatewayToken, gateway_token)
   end
 
   defp get_tier_resources("starter") do
@@ -328,8 +352,15 @@ defmodule ScalingDoodle.Kubernetes.Helm do
     }
   end
 
+  defp get_tier_resources("standard") do
+    %{
+      limits: %{cpu: "1", memory: "2Gi"},
+      requests: %{cpu: "500m", memory: "1Gi"}
+    }
+  end
+
   defp get_tier_resources(_other) do
-    get_tier_resources("starter")
+    get_tier_resources("standard")
   end
 
   defp parse_status(status) do

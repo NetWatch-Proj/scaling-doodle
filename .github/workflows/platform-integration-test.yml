@@ -1,0 +1,137 @@
+name: Platform Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to checkout (branch, tag, or SHA)'
+        required: false
+        default: 'main'
+        type: string
+      chart_path:
+        description: 'Path to Helm chart (optional)'
+        required: false
+        default: ''
+        type: string
+
+env:
+  MIX_ENV: test
+  ELIXIR_VERSION: '1.19.5'
+  OTP_VERSION: '27'
+
+jobs:
+  integration-tests:
+    name: Kubernetes Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:18
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: scaling_doodle_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/platform/deps
+            apps/platform/_build
+          key: ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('apps/platform/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-
+
+      - name: Install dependencies
+        working-directory: apps/platform
+        run: mix deps.get --only $MIX_ENV
+
+      - name: Compile project
+        working-directory: apps/platform
+        run: mix compile --warnings-as-errors
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.14.0'
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: openclaw-platform
+          wait_for_ready: true
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+              - role: control-plane
+                extraPortMappings:
+                  - containerPort: 80
+                    hostPort: 8080
+                    protocol: TCP
+
+      - name: Verify cluster
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl version
+
+      - name: Set chart path
+        id: chart
+        run: |
+          if [ -n "${{ inputs.chart_path }}" ]; then
+            echo "path=${{ inputs.chart_path }}" >> $GITHUB_OUTPUT
+          else
+            echo "path=${{ github.workspace }}/infrastructure/kubernetes/helm/openclaw" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Verify Helm chart exists
+        run: |
+          if [ ! -d "${{ steps.chart.outputs.path }}" ]; then
+            echo "Error: Helm chart not found at ${{ steps.chart.outputs.path }}"
+            exit 1
+          fi
+          echo "Helm chart found at: ${{ steps.chart.outputs.path }}"
+          ls -la ${{ steps.chart.outputs.path }}
+
+      - name: Run integration tests
+        working-directory: apps/platform
+        run: mix test --include integration
+        env:
+          KUBECONFIG: ~/.kube/config
+          OPENCLAW_CHART_PATH: ${{ steps.chart.outputs.path }}
+
+      - name: Cleanup kind cluster
+        if: always()
+        run: kind delete cluster --name openclaw-platform || true
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-logs-${{ github.run_id }}
+          path: apps/platform/log/
+          retention-days: 5

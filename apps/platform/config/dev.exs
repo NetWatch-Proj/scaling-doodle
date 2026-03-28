@@ -39,7 +39,7 @@ config :scaling_doodle, ScalingDoodle.Repo,
 config :scaling_doodle, ScalingDoodleWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}],
+  http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -92,7 +92,12 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
 config :scaling_doodle, :kubernetes,
   connection_type: :external,
   kubeconfig_path: "~/.kube/config",
-  context: "kind-openclaw-platform"
+  context: "kind-openclaw-platform",
+  chart_path:
+    Path.expand(
+      "infrastructure/kubernetes/helm/openclaw",
+      __DIR__ |> Path.dirname() |> Path.dirname() |> Path.dirname()
+    )
 
 # Enable dev routes for dashboard and mailbox
 config :scaling_doodle, dev_routes: true, token_signing_secret: "LL5BSpTNZ+CmEryG91YSurM+qFeflbqh"

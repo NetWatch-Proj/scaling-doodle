@@ -55,6 +55,7 @@ config :scaling_doodle, Oban,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :scaling_doodle, ScalingDoodle.Mailer, adapter: Swoosh.Adapters.Local
+config :scaling_doodle, ScalingDoodle.Vault, json_library: Jason
 
 # Configure the endpoint
 config :scaling_doodle, ScalingDoodleWeb.Endpoint,
@@ -70,7 +71,7 @@ config :scaling_doodle, ScalingDoodleWeb.Endpoint,
 config :scaling_doodle,
   ecto_repos: [ScalingDoodle.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [ScalingDoodle.Identity]
+  ash_domains: [ScalingDoodle.Identity, ScalingDoodle.Instances]
 
 config :spark,
   formatter: [
